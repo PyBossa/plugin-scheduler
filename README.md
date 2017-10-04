@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/PyBossa/random-scheduler.svg?branch=master)](https://travis-ci.org/PyBossa/random-scheduler)
+[![Build Status](https://travis-ci.org/Scifabric/random-scheduler.svg?branch=master)](https://travis-ci.org/Scifabric/random-scheduler)
 
 # random scheduler plugin for PyBossa
 
