@@ -1,6 +1,8 @@
 import pybossa.sched as sched
 from pybossa.forms.forms import TaskSchedulerForm
 from pybossa.core import project_repo
+from pybossa.model.task import Task
+from pybossa.core import db
 from flask.ext.plugins import Plugin
 from functools import wraps
 import random
@@ -11,14 +13,25 @@ __version__ = "0.0.1"
 SCHEDULER_NAME = 'random'
 
 
+session = db.slave_session
+
+
 def get_random_task(project_id, user_id=None, user_ip=None,
                     n_answers=30, offset=0):
     """Return a random task for the user."""
-    project = project_repo.get(project_id)
-    if project and len(project.tasks) > 0:
-        return random.choice(project.tasks)
-    else:
+    candidate_task_ids = sched.get_candidate_task_ids(project_id,
+                                                      user_id, user_ip)
+    total_remaining = len(candidate_task_ids) - offset
+    if total_remaining <= 0:
         return None
+    project = project_repo.get(project_id)
+    user = user_id or user_ip
+    random.seed("%s:%s" % (user, project_id))
+    task_order = [task.id for task in project.tasks]
+    random.shuffle(task_order)
+    candidate_set = set(candidate_task_ids)
+    candidate_task_order = [tid for tid in task_order if tid in candidate_set]
+    return session.query(Task).get(candidate_task_order[offset])
 
 
 def with_random_scheduler(f):
